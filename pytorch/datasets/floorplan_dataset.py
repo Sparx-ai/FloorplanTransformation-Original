@@ -1,3 +1,4 @@
+import pathlib
 from torch.utils.data import Dataset
 
 import numpy as np
@@ -232,10 +233,13 @@ class FloorplanDataset(Dataset):
         self.split = split
         self.random = random
         self.imagePaths = []
-        self.dataFolder = '../data/'
+        
+        self.dataFolder = f"{options.__dict__.get('dataFolder', pathlib.Path('../data'))}/"#'../data/'
+
         with open(self.dataFolder + split + '.txt') as f:
             for line in f:
-                self.imagePaths.append([value.strip() for value in line.split('\t')])
+                values = [value.strip() for value in line.split('\t')]
+                self.imagePaths.append(values)
                 continue
             
         if options.numTrainingImages > 0 and split == 'train':

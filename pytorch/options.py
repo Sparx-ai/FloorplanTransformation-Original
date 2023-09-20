@@ -1,4 +1,5 @@
 import argparse
+import pathlib
 
 def parse_args():
     """
@@ -79,6 +80,14 @@ def parse_args():
     parser.add_argument('--suffix', dest='suffix',
                         help='suffix to distinguish experiments',
                         default='', type=str)    
+    
+    parser.add_argument('--prediction_dir', dest='prediction_dir',
+                        help='Directory containing images for prediction',
+                        default=pathlib.Path('input_for_prediction'), type=pathlib.Path)
+
+    parser.add_argument('--dataFolder', dest='dataFolder',
+                        help='Directory containing values for data(train/test/val or custom.txt)',
+                        default=pathlib.Path('../data/'), type=pathlib.Path)    
     
     args = parser.parse_args()
     return args

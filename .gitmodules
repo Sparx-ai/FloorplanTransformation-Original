@@ -1,0 +1,3 @@
+[submodule "FloorplanAnnotator"]
+	path = FloorplanAnnotator
+	url = https://github.com/art-programmer/FloorplanAnnotator.git

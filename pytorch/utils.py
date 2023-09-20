@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
 
+#np.bool in original code has been depreceated do the below for patching the code to work
+#Taken from https://stackoverflow.com/questions/74893742/how-to-solve-attributeerror-module-numpy-has-no-attribute-bool#:~:text=This%20means%20you%20are%20using,while%20that%20isn't%20fixed.
+np.bool = np.bool_
+
 NUM_WALL_CORNERS = 13
 NUM_CORNERS = 21
 #CORNER_RANGES = {'wall': (0, 13), 'opening': (13, 17), 'icon': (17, 21)}
