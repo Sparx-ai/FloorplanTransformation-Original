@@ -1,7 +1,7 @@
 #ifndef STRUCTS_H_
 #define STRUCTS_H_
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <string>
 #include <vector>
 
