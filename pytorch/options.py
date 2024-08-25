@@ -6,7 +6,9 @@ def parse_args():
     Parse input arguments
     """
     parser = argparse.ArgumentParser(description='PlaneFlow')
-    
+    parser.add_argument('--cpu', 
+                        action='store_true',
+                        help='Use CPU instead of GPU')
     parser.add_argument('--task', dest='task',
                         help='task type: [train, test, predict]',
                         default='train', type=str)

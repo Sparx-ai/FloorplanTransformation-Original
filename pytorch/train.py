@@ -28,6 +28,9 @@ def main(options):
         os.system("mkdir -p %s"%options.test_dir)
         pass
 
+    # Set the device based on the --cpu flag
+    device = torch.device('cpu' if options.cpu else 'cuda')
+
     if(options.task == 'predict'):
         predictForDataset(options)
         exit(1)
@@ -39,7 +42,11 @@ def main(options):
     dataloader = DataLoader(dataset, batch_size=options.batchSize, shuffle=True, num_workers=16)
 
     model = Model(options)
-    model.cuda()
+    if options.cpu:
+         model.to(device)
+    else:
+        model.cuda()
+        
     model.train()
 
     if options.restore == 1:
@@ -64,7 +71,7 @@ def main(options):
         for sampleIndex, sample in enumerate(data_iterator):
             optimizer.zero_grad()
             
-            images, corner_gt, icon_gt, room_gt = sample[0].cuda(), sample[1].cuda(), sample[2].cuda(), sample[3].cuda()
+            images, corner_gt, icon_gt, room_gt = sample[0].to(device), sample[1].to(device), sample[2].to(device), sample[3].to(device)
 
             corner_pred, icon_pred, room_pred = model(images)
             #print([(v.shape, v.min(), v.max()) for v in [corner_pred, icon_pred, room_pred, corner_gt, icon_gt, room_gt]])
@@ -104,6 +111,8 @@ def main(options):
     return
 
 def predictForDataset(options):
+    
+    device = torch.device('cpu' if options.cpu else 'cuda')
     num_workers: int = 1
     directory_prediction: pathlib.Path = options.prediction_dir
     prediction_file: pathlib.Path = directory_prediction.joinpath('predict.txt')
@@ -133,8 +142,15 @@ def predictForDataset(options):
     dataset = FloorplanDataset(options, split='predict', random=False)
 
     model = Model(options)
-    model.cuda()
-    model.load_state_dict(torch.load(options.checkpoint_dir + '/checkpoint.pth'))
+    if options.cpu:
+        print("load cpu device")
+        model.to(device)
+        model.load_state_dict(torch.load(options.checkpoint_dir + '/checkpoint.pth', map_location=torch.device('cpu')))
+    else:
+        print("load cuda device")
+        model.cuda()
+        model.load_state_dict(torch.load(options.checkpoint_dir + '/checkpoint.pth'))
+        
     model.eval()
 
     dataloader = DataLoader(dataset, batch_size=options.batchSize, shuffle=False, num_workers=num_workers)
@@ -143,7 +159,7 @@ def predictForDataset(options):
     for sampleIndex, sample in enumerate(data_iterator):
         wallInformationFile: pathlib.Path = pathlib.Path('./test/').joinpath('floorplan').joinpath(f'{sampleIndex}_0_floorplan.txt')
         wallInformationDrawing: pathlib.Path = pathlib.Path('./test/').joinpath('floorplan').joinpath(f'{sampleIndex}_0_floorplan_drawing.jpg')
-        images, corner_gt, icon_gt, room_gt = sample[0].cuda(), sample[1].cuda(), sample[2].cuda(), sample[3].cuda()        
+        images, corner_gt, icon_gt, room_gt = sample[0].to(device), sample[1].to(device), sample[2].to(device), sample[3].to(device)       
         corner_pred, icon_pred, room_pred = model(images)
         
         if(not wallInformationFile.exists()):
@@ -217,13 +233,16 @@ def drawWalls():
 def testOneEpoch(options, model, dataset):
     model.eval()
     
+     # Set the device based on the --cpu flag
+    device = torch.device('cpu' if options.cpu else 'cuda')
+
     dataloader = DataLoader(dataset, batch_size=options.batchSize, shuffle=False, num_workers=1)
     
     epoch_losses = []    
     data_iterator = tqdm(dataloader, total=len(dataset) // options.batchSize + 1)
     for sampleIndex, sample in enumerate(data_iterator):
 
-        images, corner_gt, icon_gt, room_gt = sample[0].cuda(), sample[1].cuda(), sample[2].cuda(), sample[3].cuda()
+        images, corner_gt, icon_gt, room_gt = sample[0].to(device), sample[1].to(device), sample[2].to(device), sample[3].to(device)
         
         corner_pred, icon_pred, room_pred = model(images)
         corner_loss = torch.nn.functional.binary_cross_entropy(corner_pred, corner_gt)
